@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+
+  mariadb:
+    container_name: mariadb
+    networks:
+      - inception42
+    build:
+      context: requirements/mariadb
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_DATABASE: inception_db42
+      MYSQL_USER: test42
+      MYSQL_PASSWORD: md123456
+      MYSQL_ROOT_PASSWORD: Md12345@
+    volumes:
+      - mariadb:/var/lib/mysql
+    restart: unless-stopped
+    expose:
+      - "3306"
+
+volumes:
+  mariadb:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: ${PWD}/data/mariadb
+
+networks:
+  inception42:
+    driver: bridge
