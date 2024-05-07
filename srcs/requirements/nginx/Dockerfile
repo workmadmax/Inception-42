@@ -1,25 +1,16 @@
-FROM debian:buster
+FROM alpine:3.13
 
-RUN apt update
-RUN apt install -y nginx
+RUN	apk update && apk upgrade && apk add --no-cache \
+	nginx \
+	openssl
 
-RUN mkdir -p /etc/nginx/ssl
-RUN apt install -y openssl
-RUN openssl req -x509 -nodes \
-	-out /etc/nginx/ssl/tls.crt \
-	-keyout /etc/nginx/ssl/tls.key \
-	-subj "/C=BR/ST=Distrito Federal/L=Brasília/O=42SP/CN=mdouglas.42.org.br/UID=mdouglas"
-
-
-RUN mkdir -p /var/run/nginx
-COPY ./conf/nginx.conf /etc/nginx/sites-available/default
-
-RUN chmod 755 /var/www/html
-RUN chown -R www-data:www-data /var/www/html
+RUN mkdir /etc/nginx/ssl
+RUN openssl req -newkey rsa:4096 -x509 -sha256 -days 365 -nodes \
+	-out /etc/nginx/ssl/mdouglas.pem \
+	-keyout /etc/nginx/ssl/mdouglas.key \
+	-subj "/C=BR/ST=SP/L=idk/0=42 School/OU=mdouglas/CN=mdouglas/"
 
 RUN mkdir -p /run/nginx
+COPY conf/nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 443
-
-CMD ["nginx", "-g", "daemon off;"]
-
+ENTRYPOINT [ "nginx", "-g", "daemon off;" ]
