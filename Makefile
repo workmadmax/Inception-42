@@ -1,37 +1,22 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: mdouglas <mdouglas@student.42sp.org.br>    +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/05/01 15:41:25 by mdouglas          #+#    #+#              #
-#    Updated: 2024/05/01 15:46:44 by mdouglas         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
+NAME = inception42
 
-GREEN	=	\033[0;32m
-RED		=	\033[0;31m
-RESET	=	\033[0m
+all: start
 
-COMPOSE=./srcs/docker-compose.yml
-
-up:
-	@mkdir -p data/wordpress data/mariadb
-	@docker-compose -f $(COMPOSE) up -d --build
-	@echo "$(GREEN)Wordpress is up and running on $(RESET)"
-
-down:
-	@sudo docker-compose -f $(COMPOSE) down -v
-	@echo "$(RED)Wordpress is down$(RESET)"
+start:
+	@mkdir -p $(PWD)/data/mariadb
+	@mkdir -p $(PWD)/data/wordpress
+	@echo "127.0.0.1 mdouglas.42.org.br" >> /etc/hosts
+	@docker-compose -f srcs/docker-compose.yml up --build
 
 stop:
-	@sudo docker-compose -f $(COMPOSE) stop
-	@echo "$(RED)Wordpress is stopped$(RESET)"
+	@docker-compose -f srcs/docker-compose.yml down -v
 
-clean:
-	@sudo rm -rf data/
+clean: stop
+	@rm -rf "./data/mariadb"
+	@rm -rf "./data/wordpress"
+	@docker system prune -f
+	@docker image prune -af
+	@docker volume rm srcs_wordpress srcs_mariadb
+	@rm -rf $(PWD)/logs/*
 
-re: down up
-
-.PHONY: up down stop clean re
+.PHONY: start stop clean
