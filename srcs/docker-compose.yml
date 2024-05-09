@@ -1,33 +1,65 @@
 version: '3'
-
 services:
-
   mariadb:
     container_name: mariadb
-    networks:
-      - inception42
     build:
       context: requirements/mariadb
       dockerfile: Dockerfile
-    environment:
-      MYSQL_DATABASE: inception_db42
-      MYSQL_USER: test42
-      MYSQL_PASSWORD: md123456
-      MYSQL_ROOT_PASSWORD: Md12345@
+    env_file: .env
     volumes:
       - mariadb:/var/lib/mysql
-    restart: unless-stopped
-    expose:
-      - "3306"
+    networks:
+      - inception
+    restart: always
+    ports:
+      - "3306:3306"
+
+  nginx:
+    container_name: nginx
+    build:
+      context: requirements/nginx
+      dockerfile: Dockerfile
+    env_file: .env
+    volumes:
+      - wordpress:/var/www/wordpress
+    networks:
+      - inception
+    depends_on:
+      - wordpress
+    ports:
+      - "443:443"
+    restart: always
+
+  wordpress:
+    container_name: wordpress
+    build:
+      context: requirements/wordpress
+      dockerfile: Dockerfile
+    env_file: .env
+    volumes:
+      - wordpress:/var/www/wordpress
+    networks:
+      - inception
+    depends_on:
+      - mariadb
+    restart: always
+    ports:
+      - "9000:9000"
 
 volumes:
-  mariadb:
+  wordpress:
     driver: local
     driver_opts:
-      type: 'none'
-      o: 'bind'
-      device: ${PWD}/data/mariadb
+      type: none
+      o: bind
+      device: "${PWD}/data/wordpress"
+
+  mariadb:
+    driver_opts:
+      type: none
+      o: bind
+      device: "${PWD}/data/mariadb"
 
 networks:
-  inception42:
+  inception:
     driver: bridge
