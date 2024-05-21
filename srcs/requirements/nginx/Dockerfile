@@ -1,16 +1,11 @@
-FROM alpine:3.13
+FROM debian:bullseye
 
-RUN	apk update && apk upgrade && apk add --no-cache \
-	nginx \
-	openssl
+RUN apt-get -y update && apt-get -y upgrade
+RUN apt-get -y install nginx && apt-get install -y openssl
+RUN openssl req -x509 -newkey rsa:2048 -days 365 -nodes -out /etc/nginx/inception.crt -keyout /etc/nginx/inception.key -subj "/C=BR/ST=DF/L=Brasilia/O=Develop/CN=mdouglas"
 
-RUN mkdir /etc/nginx/ssl
-RUN openssl req -newkey rsa:4096 -x509 -sha256 -days 365 -nodes \
-	-out /etc/nginx/ssl/mdouglas.pem \
-	-keyout /etc/nginx/ssl/mdouglas.key \
-	-subj "/C=BR/ST=SP/L=idk/0=42 School/OU=mdouglas/CN=mdouglas/"
+COPY ./conf/nginx.conf /etc/nginx/nginx.conf
 
-RUN mkdir -p /run/nginx
-COPY conf/nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 443
 
-ENTRYPOINT [ "nginx", "-g", "daemon off;" ]
+CMD [ "nginx", "-g", "daemon off;" ]
