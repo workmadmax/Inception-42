@@ -1,9 +1,14 @@
-FROM alpine:3.13
+FROM debian:bullseye
 
-RUN apk update && apk upgrade && apk add --no-cache \
-	mariadb \
-	mariadb-client
+RUN apt-get -y update && apt-get -y upgrade && \
+	apt-get -y install mariadb-server
 
-COPY tools/setup.sh /tmp/setup.sh
+COPY conf/my.conf /etc/mysql/my.cnf
 
-ENTRYPOINT [ "sh", "/tmp/setup.sh" ]
+COPY tools/script.sh /etc/mariadb/conf/script.sh
+
+RUN chmod +x /etc/mariadb/conf/script.sh
+
+EXPOSE 3306
+
+ENTRYPOINT [ "sh", "/etc/mariadb/conf/script.sh" ]

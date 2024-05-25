@@ -1,22 +1,19 @@
-NAME = inception42
+up :
+	mkdir -p ${PWD}/data/db-data
+	mkdir -p ${PWD}/data/wp-data
+	@ echo "127.0.0.1 mdouglas.42.fr" >> /etc/hosts
+	docker-compose -f ./srcs/docker-compose.yml up --d
 
-all: start
+down:
+	docker-compose -f ./srcs/docker-compose.yml down
 
-start:
-	@mkdir -p $(PWD)/data/mariadb
-	@mkdir -p $(PWD)/data/wordpress
-	@echo "127.0.0.1 mdouglas.42.org.br" >> /etc/hosts
-	@docker-compose -f srcs/docker-compose.yml up --build
+clean:
+	docker-compose -f ./srcs/docker-compose.yml down --v
+	docker system prune -af
+	sudo rm -rf ${PWD}/data
+	
+re: clean
+	docker system prune -af
+	$(MAKE) -s up
 
-stop:
-	@docker-compose -f srcs/docker-compose.yml down -v
-
-clean: stop
-	@rm -rf "./data/mariadb"
-	@rm -rf "./data/wordpress"
-	@docker system prune -f
-	@docker image prune -af
-	@docker volume rm srcs_wordpress srcs_mariadb
-	@rm -rf $(PWD)/logs/*
-
-.PHONY: start stop clean
+.PHONY: up down clean re
